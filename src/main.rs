@@ -18,12 +18,14 @@ fn main() -> Result<(), eframe::Error> {
         options,
         Box::new(|cc| {
             let mut grid = StaggeredMACGrid::new(1.0, 64);
+            let tcc = grid.velocities_x.len();
+
             for (i, vx) in grid.velocities_x.iter_mut().enumerate() {
-                *vx = i as f64 / grid.cell_count as f64;
+                *vx = i as f64 / tcc as f64;
             }
 
             for (i, vy) in grid.velocities_y.iter_mut().enumerate() {
-                *vy = i as f64 / grid.cell_count as f64;
+                *vy = i as f64 / tcc as f64;
             }
 
             let simulator = Simulator::new(grid);

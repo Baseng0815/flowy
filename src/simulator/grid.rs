@@ -14,24 +14,36 @@ impl StaggeredMACGrid {
         StaggeredMACGrid {
             cell_size,
             cell_count,
-            velocities_x: vec![0.0; cell_count as usize + 1],
-            velocities_y: vec![0.0; cell_count as usize + 1]
+            velocities_x: vec![0.0; (cell_count + 1).pow(2) as usize],
+            velocities_y: vec![0.0; (cell_count + 1).pow(2) as usize]
         }
     }
 
+    pub fn vel_x(&self, x: u32, y: u32) -> f64 {
+        self.velocities_x[(x + y * (self.cell_count + 1)) as usize]
+    }
+
+    pub fn vel_x_mut(&mut self, x: u32, y: u32) -> &mut f64 {
+        &mut self.velocities_x[(x + y * (self.cell_count + 1)) as usize]
+    }
+
+    pub fn vel_y(&self, x: u32, y: u32) -> f64 {
+        self.velocities_y[(y + x * (self.cell_count + 1)) as usize]
+    }
+
+    pub fn vel_y_mut(&mut self, x: u32, y: u32) -> &mut f64 {
+        &mut self.velocities_y[(y + x * (self.cell_count + 1)) as usize]
+    }
+
     // TODO? remove checks
-    pub fn velocity_gradient(&self, x: u32, y: u32) -> Option<f64> {
-        let vxl = self.velocities_x.get(x as usize)?;
-        let vxr = self.velocities_x.get((x + 1) as usize)?;
+    pub fn velocity_gradient(&self, x: u32, y: u32) {
+        let vxl = self.velocities_x[x as usize];
+        let vxr = self.velocities_x[(x + 1) as usize];
 
-        let vyu = self.velocities_y.get(y as usize)?;
-        let vyd = self.velocities_y.get((y + 1) as usize)?;
+        let vyu = self.velocities_y[y as usize];
+        let vyd = self.velocities_y[(y + 1) as usize];
 
-        eprintln!("vxl = {:#?}", vxl);
-        eprintln!("vxr = {:#?}", vxr);
-
-        let gradient = vector2(vxl - vxr, vyu - vyd).len();
-        Some(gradient)
+        vector2(vxl - vxr, vyu - vyd).len();
     }
 }
 

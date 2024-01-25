@@ -9,7 +9,7 @@ pub fn vector2(x: f64, y: f64) -> Vector2 {
 
 impl Vector2 {
     pub fn len_squared(&self) -> f64 {
-        self.x * self.x + self.y * self.y
+        self.x.powi(2) + self.y.powi(2)
     }
 
     pub fn len(&self) -> f64 {
