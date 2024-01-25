@@ -17,7 +17,7 @@ fn main() -> Result<(), eframe::Error> {
         "flowy",
         options,
         Box::new(|cc| {
-            let mut grid = StaggeredMACGrid::new(1.0, 64);
+            let mut grid = StaggeredMACGrid::new(5.0, 20);
             let tcc = grid.velocities_x.len();
 
             for (i, vx) in grid.velocities_x.iter_mut().enumerate() {
