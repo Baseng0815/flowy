@@ -14,8 +14,8 @@ impl StaggeredMACGrid {
         StaggeredMACGrid {
             cell_size,
             cell_count,
-            velocities_x: vec![0.0; (cell_count + 1).pow(2) as usize],
-            velocities_y: vec![0.0; (cell_count + 1).pow(2) as usize]
+            velocities_x: vec![0.0; (cell_count * (cell_count + 1)) as usize],
+            velocities_y: vec![0.0; (cell_count * (cell_count + 1)) as usize]
         }
     }
 

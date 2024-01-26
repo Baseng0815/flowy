@@ -67,15 +67,15 @@ impl FlowyApp {
         let cc = self.simulator.grid.cell_count;
         let half_grid = 1.0 / (2.0 * cc as f32);
 
-        for y in 0..=cc {
-            for x in 0..=cc {
-                let vx = self.simulator.grid.vel_x(x, y);
-                let vy = self.simulator.grid.vel_y(x, y);
+        for row in 0..cc {
+            for col in 0..=cc {
+                let vx = self.simulator.grid.vel_x(col, row);
+                let vy = self.simulator.grid.vel_y(row, col);
                 let lenx = vx as f32 * self.visualization_scaling_factor/ ((cc + 1) as f32 * self.simulator.grid.cell_size as f32);
                 let leny = vy as f32 * self.visualization_scaling_factor/ ((cc + 1) as f32 * self.simulator.grid.cell_size as f32);
 
-                let minx = pos2(x as f32 / cc as f32, y as f32 / cc as f32 + half_grid);
-                let miny = pos2(x as f32 / cc as f32 + half_grid, y as f32 / cc as f32);
+                let minx = pos2(col as f32 / cc as f32, row as f32 / cc as f32 + half_grid);
+                let miny = pos2(row as f32 / cc as f32 + half_grid, col as f32 / cc as f32);
 
                 let minxt = to_screen.transform_pos(minx);
                 let minyt = to_screen.transform_pos(miny);
