@@ -1,21 +1,25 @@
-use super::{grid::StaggeredMACGrid, interpolation::{Interpolation, CubicInterpolation}};
+use super::{grid::StaggeredMACGrid, interpolation::{Interpolation, CubicInterpolation}, math::Vector2};
 
-pub trait Simulator {
-    fn new(grid: StaggeredMACGrid) -> Self;
-    type InterpolationT: Interpolation;
-}
 
-pub struct StandardSimulator
+pub struct Simulator
 {
     pub grid: StaggeredMACGrid
 }
 
-impl Simulator for StandardSimulator {
-    type InterpolationT = CubicInterpolation;
-
-    fn new(grid: StaggeredMACGrid) -> Self {
+impl Simulator {
+    pub fn new(grid: StaggeredMACGrid) -> Self {
         Self {
             grid
         }
+    }
+
+    pub fn advect(&mut self, dt: f64) {
+
+    }
+
+    fn trace_back(&self, dt: f64, pos: Vector2) -> Vector2 {
+        let u = self.grid.vel(pos);
+
+        pos - dt * u
     }
 }

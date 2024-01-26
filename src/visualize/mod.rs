@@ -1,11 +1,11 @@
 use eframe::egui;
 use egui::{Painter, Sense, Slider};
-use epaint::{Shape, Color32, Rounding, Pos2, pos2, Vec2, emath::RectTransform, Rect, Stroke, RectShape, vec2};
+use epaint::{Color32, Rounding, pos2, Vec2, emath::RectTransform, Rect, Stroke, vec2};
 
-use crate::simulator::{simulator::{Simulator, StandardSimulator}, math::vector2};
+use crate::simulator::{math::vector2, simulator::Simulator};
 
 pub struct FlowyApp {
-    simulator: StandardSimulator,
+    simulator: Simulator,
     line_width: f32,
     visualization_scaling_factor: f32,
 
@@ -15,7 +15,7 @@ pub struct FlowyApp {
 }
 
 impl FlowyApp {
-    pub fn new(simulator: StandardSimulator) -> Self {
+    pub fn new(simulator: Simulator) -> Self {
         Self {
             simulator,
             line_width: 0.5,

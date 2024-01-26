@@ -1,6 +1,6 @@
 use std::fmt::Display;
 
-use super::{math::{vector2, Vector2}, interpolation::Interpolation};
+use super::{math::{vector2, Vector2}, interpolation::{Interpolation, CubicInterpolation}};
 
 pub struct StaggeredMACGrid {
     pub cell_size: f64,
@@ -35,9 +35,10 @@ impl StaggeredMACGrid {
         &mut self.velocities_y[(y + x * (self.cell_count + 1)) as usize]
     }
 
-    pub fn vel<InterpolationT: Interpolation>(&self, x: f64, y: f64) -> Vector2 {
-        let ix = InterpolationT::interpolate(&self.velocities_x, x);
-        let iy = InterpolationT::interpolate(&self.velocities_y, y);
+    pub fn vel(&self, pos: Vector2) -> Vector2 {
+        // TODO make generic
+        let ix = CubicInterpolation::interpolate(&self.velocities_x, pos.x);
+        let iy = CubicInterpolation::interpolate(&self.velocities_y, pos.y);
         vector2(ix, iy)
     }
 }
