@@ -1,11 +1,19 @@
-use super::grid::StaggeredMACGrid;
+use super::{grid::StaggeredMACGrid, interpolation::{Interpolation, CubicInterpolation}};
 
-pub struct Simulator {
+pub trait Simulator {
+    fn new(grid: StaggeredMACGrid) -> Self;
+    type InterpolationT: Interpolation;
+}
+
+pub struct StandardSimulator
+{
     pub grid: StaggeredMACGrid
 }
 
-impl Simulator {
-    pub fn new(grid: StaggeredMACGrid) -> Self {
+impl Simulator for StandardSimulator {
+    type InterpolationT = CubicInterpolation;
+
+    fn new(grid: StaggeredMACGrid) -> Self {
         Self {
             grid
         }

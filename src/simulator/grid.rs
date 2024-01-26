@@ -1,6 +1,6 @@
 use std::fmt::Display;
 
-use super::math::vector2;
+use super::{math::{vector2, Vector2}, interpolation::Interpolation};
 
 pub struct StaggeredMACGrid {
     pub cell_size: f64,
@@ -10,8 +10,8 @@ pub struct StaggeredMACGrid {
 }
 
 impl StaggeredMACGrid {
-    pub fn new(cell_size: f64, cell_count: u32) -> StaggeredMACGrid {
-        StaggeredMACGrid {
+    pub fn new(cell_size: f64, cell_count: u32) -> Self {
+        Self {
             cell_size,
             cell_count,
             velocities_x: vec![0.0; (cell_count * (cell_count + 1)) as usize],
@@ -35,15 +35,10 @@ impl StaggeredMACGrid {
         &mut self.velocities_y[(y + x * (self.cell_count + 1)) as usize]
     }
 
-    // TODO? remove checks
-    pub fn velocity_gradient(&self, x: u32, y: u32) {
-        let vxl = self.velocities_x[x as usize];
-        let vxr = self.velocities_x[(x + 1) as usize];
-
-        let vyu = self.velocities_y[y as usize];
-        let vyd = self.velocities_y[(y + 1) as usize];
-
-        vector2(vxl - vxr, vyu - vyd).len();
+    pub fn vel<InterpolationT: Interpolation>(&self, x: f64, y: f64) -> Vector2 {
+        let ix = InterpolationT::interpolate(&self.velocities_x, x);
+        let iy = InterpolationT::interpolate(&self.velocities_y, y);
+        vector2(ix, iy)
     }
 }
 
