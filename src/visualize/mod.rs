@@ -6,12 +6,20 @@ use crate::simulator::{math::vector2, simulator::Simulator};
 
 pub struct FlowyApp {
     simulator: Simulator,
+
+    // visualization parameters
     line_width: f32,
     visualization_scaling_factor: f32,
 
     draw_grid: bool,
-    draw_velocity_vectors: bool,
-    draw_velocity_greyscale: bool
+    draw_velocity_edge_vectors: bool,
+    draw_velocity_center_vectors: bool,
+    draw_velocity_greyscale: bool,
+
+    // simulation parameters
+    dt: f64,
+    simulation_running: bool,
+    simulation_step: bool
 }
 
 impl FlowyApp {
@@ -22,8 +30,13 @@ impl FlowyApp {
             visualization_scaling_factor: 1.0,
 
             draw_grid: true,
-            draw_velocity_vectors: true,
-            draw_velocity_greyscale: true
+            draw_velocity_edge_vectors: false,
+            draw_velocity_center_vectors: true,
+            draw_velocity_greyscale: true,
+
+            dt: 1.0,
+            simulation_running: false,
+            simulation_step: false
         }
     }
 
@@ -51,8 +64,8 @@ impl FlowyApp {
 
         for y in 0..cc {
             for x in 0..cc {
-                let vx = (self.simulator.grid.vel_x(x, y) + self.simulator.grid.vel_x(x + 1, y)) / 2.0;
-                let vy = (self.simulator.grid.vel_y(x, y) + self.simulator.grid.vel_y(x, y + 1)) / 2.0;
+                let vx = (self.simulator.grid.get_vel_x(x, y) + self.simulator.grid.get_vel_x(x + 1, y)) / 2.0;
+                let vy = (self.simulator.grid.get_vel_y(x, y) + self.simulator.grid.get_vel_y(x, y + 1)) / 2.0;
                 let len = (vector2(vx, vy).len_squared() / 2.0f64.sqrt()) as f32 * self.visualization_scaling_factor;
                 let color = Color32::from_gray((len * 255 as f32) as u8);
 
@@ -63,16 +76,16 @@ impl FlowyApp {
         }
     }
 
-    fn draw_grid_velocities_vectors(&self, painter: &Painter, to_screen: &RectTransform) {
+    fn draw_grid_velocities_edge_vectors(&self, painter: &Painter, to_screen: &RectTransform) {
         let cc = self.simulator.grid.cell_count;
         let half_grid = 1.0 / (2.0 * cc as f32);
 
         for row in 0..cc {
             for col in 0..=cc {
-                let vx = self.simulator.grid.vel_x(col, row);
-                let vy = self.simulator.grid.vel_y(row, col);
-                let lenx = vx as f32 * self.visualization_scaling_factor/ ((cc + 1) as f32 * self.simulator.grid.cell_size as f32);
-                let leny = vy as f32 * self.visualization_scaling_factor/ ((cc + 1) as f32 * self.simulator.grid.cell_size as f32);
+                let vx = self.simulator.grid.get_vel_x(col, row);
+                let vy = self.simulator.grid.get_vel_y(row, col);
+                let lenx = vx as f32 * self.visualization_scaling_factor / ((cc + 1) as f32);
+                let leny = vy as f32 * self.visualization_scaling_factor / ((cc + 1) as f32);
 
                 let minx = pos2(col as f32 / cc as f32, row as f32 / cc as f32 + half_grid);
                 let miny = pos2(row as f32 / cc as f32 + half_grid, col as f32 / cc as f32);
@@ -87,6 +100,25 @@ impl FlowyApp {
             }
         }
     }
+
+    fn draw_grid_velocities_center_vectors(&self, painter: &Painter, to_screen: &RectTransform) {
+        let cc = self.simulator.grid.cell_count;
+        let half_grid = 1.0 / (2.0 * cc as f32);
+
+        for x in 0..cc {
+            for y in 0..cc {
+                let vel = self.simulator.grid.vel(vector2(x as f64, y as f64));
+                let vel_scaled = (1.0 / (cc + 1) as f64) * self.visualization_scaling_factor as f64 * vel;
+
+                let minx = pos2(x as f32 / cc as f32 + half_grid, y as f32 / cc as f32 + half_grid);
+
+                let minxt = to_screen.transform_pos(minx);
+                let maxxt = to_screen.transform_pos(minx + vel_scaled.into());
+
+                painter.line_segment([minxt, maxxt], Stroke::new(self.line_width, Color32::GREEN));
+            }
+        }
+    }
 }
 
 impl eframe::App for FlowyApp {
@@ -94,13 +126,19 @@ impl eframe::App for FlowyApp {
         egui::SidePanel::right("settings_panel").show(ctx, |ui| {
             ui.heading("Settings");
 
+            ui.label("Visualization parameters");
             ui.add(Slider::new(&mut self.line_width, 0.01..=5.0).text("Line width"));
-
             ui.add(Slider::new(&mut self.visualization_scaling_factor, 0.01..=10.0).text("Visualization scaling factor"));
 
             ui.checkbox(&mut self.draw_grid, "Draw grid");
             ui.checkbox(&mut self.draw_velocity_greyscale, "Draw velocity (greyscale)");
-            ui.checkbox(&mut self.draw_velocity_vectors, "Draw velocity (vectors)");
+            ui.checkbox(&mut self.draw_velocity_edge_vectors, "Draw velocity (edge vectors)");
+            ui.checkbox(&mut self.draw_velocity_center_vectors, "Draw velocity (center vectors)");
+
+            ui.label("Simulation parameters");
+            ui.add(Slider::new(&mut self.dt, 1.0..=1000.0).text("Time step (ms)"));
+            ui.checkbox(&mut self.simulation_running, "Run simulation at full speed");
+            self.simulation_step = ui.button("Step simulation").clicked();
         });
 
         egui::CentralPanel::default().show(ctx, |ui| {
@@ -116,12 +154,20 @@ impl eframe::App for FlowyApp {
                 self.draw_grid_velocities_greyscale(&painter, &to_screen);
             }
 
-            if self.draw_velocity_vectors {
-                self.draw_grid_velocities_vectors(&painter, &to_screen);
+            if self.draw_velocity_edge_vectors {
+                self.draw_grid_velocities_edge_vectors(&painter, &to_screen);
+            }
+
+            if self.draw_velocity_center_vectors {
+                self.draw_grid_velocities_center_vectors(&painter, &to_screen);
             }
 
             if self.draw_grid {
                 self.draw_grid_lines(&painter, &to_screen);
+            }
+
+            if self.simulation_step {
+                self.simulator.advect(self.dt);
             }
         });
     }

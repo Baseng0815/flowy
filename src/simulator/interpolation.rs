@@ -22,7 +22,8 @@ pub struct CubicInterpolation {
 impl Interpolation for CubicInterpolation {
     fn interpolate(points: &[f64], index: f64) -> f64 {
         let c1 = index.floor() as usize;
-        let c0 = (c1 - 1).max(0);
+        // let c0 = (c1 - 1).max(0);
+         let c0 = if c1 == 0 { 0 } else { c1 - 1 };
         let c2 = (c1 + 1).min(points.len() - 1);
 
         let s = index - c0 as f64;
