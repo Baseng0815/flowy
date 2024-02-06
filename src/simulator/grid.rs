@@ -52,10 +52,10 @@ impl StaggeredMACGrid {
 
     pub fn vel(&self, pos: Vector2) -> Vector2 {
         // TODO make generic
-        let iy = (self.cell_count + 1) as usize * pos.y as usize;
+        let iy = (self.cell_count + 1) as usize * (pos.y as usize).clamp(0, (self.cell_count - 1) as usize);
         let slice_x = &self.velocities_x[iy..iy + (self.cell_count + 1) as usize];
 
-        let ix = (self.cell_count + 1) as usize * pos.x as usize;
+        let ix = (self.cell_count + 1) as usize * (pos.x as usize).clamp(0, (self.cell_count - 1) as usize);
         let slice_y = &self.velocities_y[ix..ix + (self.cell_count + 1) as usize];
 
         let vx = CubicInterpolation::interpolate(slice_x, pos.x);

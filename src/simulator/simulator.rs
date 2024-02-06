@@ -15,8 +15,9 @@ impl Simulator {
 
     pub fn advect(&mut self, dt: f64) {
         let mut grid_new = self.grid.clone();
-        let half_grid = self.grid.cell_count as f64 / 2.0;
+        let half_grid = 1.0 / (self.grid.cell_count as f64 * 2.0);
 
+        // advect velocities
         for row in 0..self.grid.cell_count {
             for col in 0..=self.grid.cell_count {
                 // x velocities

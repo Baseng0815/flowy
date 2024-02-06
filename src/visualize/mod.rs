@@ -1,8 +1,22 @@
+use chrono::{DateTime, TimeZone, Local};
 use eframe::egui;
-use egui::{Painter, Sense, Slider};
+use egui::{Painter, Sense, Slider, Grid};
 use epaint::{Color32, Rounding, pos2, Vec2, emath::RectTransform, Rect, Stroke, vec2};
 
-use crate::simulator::{math::vector2, simulator::Simulator};
+use crate::simulator::{math::vector2, simulator::Simulator, grid::StaggeredMACGrid};
+
+struct Snapshot {
+    from_when: DateTime<Local>,
+    grid: StaggeredMACGrid
+}
+
+impl Snapshot {
+    fn new(from_when: DateTime<Local>, grid: StaggeredMACGrid) -> Self {
+        Self {
+            from_when, grid
+        }
+    }
+}
 
 pub struct FlowyApp {
     simulator: Simulator,
@@ -19,7 +33,8 @@ pub struct FlowyApp {
     // simulation parameters
     dt: f64,
     simulation_running: bool,
-    simulation_step: bool
+
+    snapshots: Vec<Snapshot>,
 }
 
 impl FlowyApp {
@@ -36,7 +51,8 @@ impl FlowyApp {
 
             dt: 1.0,
             simulation_running: false,
-            simulation_step: false
+
+            snapshots: Vec::new()
         }
     }
 
@@ -130,7 +146,8 @@ impl eframe::App for FlowyApp {
             ui.add(Slider::new(&mut self.line_width, 0.01..=5.0).text("Line width"));
             ui.add(Slider::new(&mut self.visualization_scaling_factor, 0.01..=10.0).text("Visualization scaling factor"));
 
-            ui.checkbox(&mut self.draw_grid, "Draw grid");
+            ui.toggle_value(&mut self.draw_grid, "Draw grid");
+            // ui.checkbox(&mut self.draw_grid, "Draw grid");
             ui.checkbox(&mut self.draw_velocity_greyscale, "Draw velocity (greyscale)");
             ui.checkbox(&mut self.draw_velocity_edge_vectors, "Draw velocity (edge vectors)");
             ui.checkbox(&mut self.draw_velocity_center_vectors, "Draw velocity (center vectors)");
@@ -138,7 +155,20 @@ impl eframe::App for FlowyApp {
             ui.label("Simulation parameters");
             ui.add(Slider::new(&mut self.dt, 1.0..=1000.0).text("Time step (ms)"));
             ui.checkbox(&mut self.simulation_running, "Run simulation at full speed");
-            self.simulation_step = ui.button("Step simulation").clicked();
+            if ui.button("Step simulation").clicked() {
+                self.simulator.advect(self.dt);
+            }
+
+            if ui.button("Take snapshot").clicked() {
+                self.snapshots.push(Snapshot::new(Local::now(), self.simulator.grid.clone());
+            }
+
+            egui::ComboBox::from_label("Restore snapshot")
+                .selected_text("lmao")
+                .show_ui(ui, |ui| {
+                    for snapshot
+                })
+            ui.menu_button("Restore snapshot", )
         });
 
         egui::CentralPanel::default().show(ctx, |ui| {
@@ -164,10 +194,6 @@ impl eframe::App for FlowyApp {
 
             if self.draw_grid {
                 self.draw_grid_lines(&painter, &to_screen);
-            }
-
-            if self.simulation_step {
-                self.simulator.advect(self.dt);
             }
         });
     }
