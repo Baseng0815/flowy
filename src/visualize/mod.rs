@@ -1,19 +1,21 @@
-use chrono::{DateTime, TimeZone, Local};
+use chrono::{DateTime, TimeZone, Local, DurationRound, Duration, NaiveTime};
 use eframe::egui;
 use egui::{Painter, Sense, Slider, Grid};
 use epaint::{Color32, Rounding, pos2, Vec2, emath::RectTransform, Rect, Stroke, vec2};
 
 use crate::simulator::{math::vector2, simulator::Simulator, grid::StaggeredMACGrid};
 
+#[derive(PartialEq)]
 struct Snapshot {
-    from_when: DateTime<Local>,
+    timestep: u32,
     grid: StaggeredMACGrid
 }
 
 impl Snapshot {
-    fn new(from_when: DateTime<Local>, grid: StaggeredMACGrid) -> Self {
+    fn new(timestep: u32, grid: StaggeredMACGrid) -> Self {
         Self {
-            from_when, grid
+            timestep,
+            grid
         }
     }
 }
@@ -35,6 +37,7 @@ pub struct FlowyApp {
     simulation_running: bool,
 
     snapshots: Vec<Snapshot>,
+    selected_snapshot: Option<usize>
 }
 
 impl FlowyApp {
@@ -52,7 +55,8 @@ impl FlowyApp {
             dt: 1.0,
             simulation_running: false,
 
-            snapshots: Vec::new()
+            snapshots: Vec::new(),
+            selected_snapshot: None
         }
     }
 
@@ -147,28 +151,47 @@ impl eframe::App for FlowyApp {
             ui.add(Slider::new(&mut self.visualization_scaling_factor, 0.01..=10.0).text("Visualization scaling factor"));
 
             ui.toggle_value(&mut self.draw_grid, "Draw grid");
-            // ui.checkbox(&mut self.draw_grid, "Draw grid");
-            ui.checkbox(&mut self.draw_velocity_greyscale, "Draw velocity (greyscale)");
-            ui.checkbox(&mut self.draw_velocity_edge_vectors, "Draw velocity (edge vectors)");
-            ui.checkbox(&mut self.draw_velocity_center_vectors, "Draw velocity (center vectors)");
+            ui.toggle_value(&mut self.draw_velocity_greyscale, "Draw velocity (greyscale)");
+            ui.toggle_value(&mut self.draw_velocity_edge_vectors, "Draw velocity (edge vectors)");
+            ui.toggle_value(&mut self.draw_velocity_center_vectors, "Draw velocity (center vectors)");
 
             ui.label("Simulation parameters");
             ui.add(Slider::new(&mut self.dt, 1.0..=1000.0).text("Time step (ms)"));
-            ui.checkbox(&mut self.simulation_running, "Run simulation at full speed");
+            ui.toggle_value(&mut self.simulation_running, "Run simulation at full speed");
+
+            ui.separator();
+
             if ui.button("Step simulation").clicked() {
                 self.simulator.advect(self.dt);
             }
 
             if ui.button("Take snapshot").clicked() {
-                self.snapshots.push(Snapshot::new(Local::now(), self.simulator.grid.clone());
+                self.snapshots.push(Snapshot::new(self.simulator.current_time_step, self.simulator.grid.clone()));
             }
 
-            egui::ComboBox::from_label("Restore snapshot")
-                .selected_text("lmao")
+            let snapshot_selection_text = match self.selected_snapshot {
+                Some(i) => format!("snapshots[{}]", i),
+                None => "None".to_string()
+            };
+
+            egui::ComboBox::from_label("Select a snapshot to restore")
+                .selected_text(snapshot_selection_text)
                 .show_ui(ui, |ui| {
-                    for snapshot
-                })
-            ui.menu_button("Restore snapshot", )
+                    for (i, snapshot) in self.snapshots.iter().enumerate() {
+                        let text = format!("[{}]: timestep={}", i, snapshot.timestep);
+                        if ui.selectable_value(&mut self.selected_snapshot, Some(i), text).clicked() {
+                            // restore snapshot
+                            self.simulator.grid = snapshot.grid.clone();
+                        }
+                    }
+                });
+
+            if ui.button("Restore").clicked() {
+                // restore snapshot (in case the user wants to restore the snapshot multiple times)
+                if let Some(i) = self.selected_snapshot {
+                    self.simulator.grid = self.snapshots[i].grid.clone();
+                }
+            }
         });
 
         egui::CentralPanel::default().show(ctx, |ui| {

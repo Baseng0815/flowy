@@ -1,13 +1,14 @@
 use std::fmt::Display;
 
-use super::{math::{vector2, Vector2}, interpolation::{Interpolation, CubicInterpolation, LinearInterpolation}};
+use super::{math::{vector2, Vector2}, interpolation::{Interpolation, CubicInterpolation}};
 
-#[derive(Clone)]
+#[derive(Clone, PartialEq)]
 pub struct StaggeredMACGrid {
     pub cell_count: u32,
     pub velocities_x: Vec<f64>,
     pub velocities_y: Vec<f64>,
 
+    // for now only a mock quantity for advection tests
     pub temperature: Vec<f64>,
 }
 

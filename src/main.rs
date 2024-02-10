@@ -9,7 +9,7 @@ mod visualize;
 
 fn main() -> Result<(), eframe::Error> {
     let options = eframe::NativeOptions {
-        viewport: egui::ViewportBuilder::default().with_inner_size([320.0, 240.0]),
+        viewport: egui::ViewportBuilder::default().with_resizable(true),
         ..Default::default()
     };
 
