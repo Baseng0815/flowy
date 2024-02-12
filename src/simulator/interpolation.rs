@@ -2,8 +2,7 @@ pub trait Interpolation {
     fn interpolate(points: &[f64], index: f64) -> f64;
 }
 
-pub struct LinearInterpolation {
-}
+pub struct LinearInterpolation { }
 
 impl Interpolation for LinearInterpolation {
     fn interpolate(points: &[f64], index: f64) -> f64 {
@@ -16,8 +15,7 @@ impl Interpolation for LinearInterpolation {
     }
 }
 
-pub struct CubicInterpolation {
-}
+pub struct CubicInterpolation { }
 
 impl Interpolation for CubicInterpolation {
     fn interpolate(points: &[f64], index: f64) -> f64 {

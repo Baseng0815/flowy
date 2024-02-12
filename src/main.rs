@@ -18,6 +18,8 @@ fn main() -> Result<(), eframe::Error> {
         options,
         Box::new(|cc| {
             let mut grid = StaggeredMACGrid::new(5.0, 20);
+            *grid.temp_grid_mut(4, 0) = 1.0;
+
             let tcc = grid.velocities_x.len();
 
             for (i, vx) in grid.velocities_x.iter_mut().enumerate() {

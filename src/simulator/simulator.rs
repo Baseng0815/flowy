@@ -1,58 +1,63 @@
-use super::{grid::StaggeredMACGrid, interpolation::{Interpolation, CubicInterpolation}, math::{Vector2, vector2}};
+use chrono::{NaiveTime, Local};
+
+use super::{grid::StaggeredMACGrid, math::{Vector2, vector2}};
 
 
 pub struct Simulator
 {
     pub grid: StaggeredMACGrid,
-    pub current_time_step: u32
+    pub current_time_step: u32,
+    pub last_stepped: NaiveTime
 }
 
 impl Simulator {
     pub fn new(grid: StaggeredMACGrid) -> Self {
         Self {
             grid,
-            current_time_step: 0
+            current_time_step: 0,
+            last_stepped: Local::now().time()
         }
     }
 
     pub fn advect(&mut self, dt: f64) {
         let mut grid_new = self.grid.clone();
-        let half_grid = 1.0 / (self.grid.cell_count as f64 * 2.0);
 
         // advect velocities
         // for row in 0..self.grid.cell_count {
         //     for col in 0..=self.grid.cell_count {
         //         // x velocities
-        //         let xp = vector2(col as f64, row as f64 + half_grid);
+        //         let xp = vector2(col as f64, row as f64 + 0.5);
         //         let xg = self.trace_back(dt, xp);
 
         //         let clamped = xg.clamp(0.0, self.grid.cell_count as f64);
         //         let v_new = self.grid.vel(clamped);
-        //         grid_new.set_vel_x(col, row, v_new.x);
+        //         *grid_new.vel_x_grid_mut(col, row) = v_new.x;
 
         //         // y velocities
-        //         let xp = vector2(row as f64 + half_grid, col as f64);
+        //         let xp = vector2(row as f64 + 0.5, col as f64);
         //         let xg = self.trace_back(dt, xp);
 
         //         let clamped = xg.clamp(0.0, self.grid.cell_count as f64);
         //         let v_new = self.grid.vel(clamped);
-        //         grid_new.set_vel_y(row, col, v_new.y);
+        //         *grid_new.vel_y_grid_mut(row, col) = v_new.y;
         //     }
         // }
 
         // advect temperature
         for y in 0..self.grid.cell_count {
             for x in 0..self.grid.cell_count {
-                let xp = vector2(x as f64, y as f64 + half_grid);
+                let xp = vector2(x as f64 + 0.5, y as f64 + 0.5);
                 let xg = self.trace_back(dt, xp);
 
-                let clamped = xg.clamp(0.0, self.grid.cell_count as f64);
-                let v_new = self.grid.vel(clamped);
-                grid_new.set_vel_x(col, row, v_new.x);
+                let clamped = xg.clamp(0.0, self.grid.cell_count as f64 + 0.5);
+                let temp_new = self.grid.temp(clamped);
+                *grid_new.temp_grid_mut(x, y) = temp_new;
             }
         }
 
         self.grid = grid_new;
+
+        self.last_stepped = Local::now().time();
         self.current_time_step += 1;
     }
 

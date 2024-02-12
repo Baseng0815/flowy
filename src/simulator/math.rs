@@ -20,7 +20,7 @@ impl Vector2 {
     }
 
     pub fn clamp(&self, min: f64, max: f64) -> Self {
-        Self { x: self.x.clamp(min, max), y: self.x.clamp(min, max) }
+        Self { x: self.x.clamp(min, max), y: self.y.clamp(min, max) }
     }
 }
 

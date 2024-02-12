@@ -1,6 +1,6 @@
 use std::fmt::Display;
 
-use super::{math::{vector2, Vector2}, interpolation::{Interpolation, CubicInterpolation}};
+use super::{math::{vector2, Vector2}, interpolation::{Interpolation, CubicInterpolation, LinearInterpolation}};
 
 #[derive(Clone, PartialEq)]
 pub struct StaggeredMACGrid {
@@ -22,33 +22,46 @@ impl StaggeredMACGrid {
         }
     }
 
-    pub fn get_vel_x(&self, x: u32, y: u32) -> f64 {
+    // accessors for sampled grid values
+    pub fn vel_x_grid(&self, x: u32, y: u32) -> f64 {
         self.velocities_x[(x + y * (self.cell_count + 1)) as usize]
     }
 
-    pub fn set_vel_x(&mut self, x: u32, y: u32, v: f64) {
-        self.velocities_x[(x + y * (self.cell_count + 1)) as usize] = v;
+    pub fn vel_x_grid_mut(&mut self, x: u32, y: u32) -> &mut f64 {
+        &mut self.velocities_x[(x + y * (self.cell_count + 1)) as usize]
     }
 
-    pub fn get_vel_y(&self, x: u32, y: u32) -> f64 {
+    pub fn vel_y_grid(&self, x: u32, y: u32) -> f64 {
         self.velocities_y[(y + x * (self.cell_count + 1)) as usize]
     }
 
-    pub fn set_vel_y(&mut self, x: u32, y: u32, v: f64) {
-        self.velocities_y[(y + x * (self.cell_count + 1)) as usize] = v;
+    pub fn vel_y_grid_mut(&mut self, x: u32, y: u32) -> &mut f64 {
+        &mut self.velocities_y[(y + x * (self.cell_count + 1)) as usize]
     }
 
-    pub fn temperature_center(&self, x: u32, y: u32) -> f64 {
+    pub fn temp_grid(&self, x: u32, y: u32) -> f64 {
         self.temperature[(x + y * (self.cell_count)) as usize]
     }
 
-    pub fn temperature_center_mut(&mut self, x: u32, y: u32) -> &mut f64 {
+    pub fn temp_grid_mut(&mut self, x: u32, y: u32) -> &mut f64 {
         &mut self.temperature[(x + y * (self.cell_count)) as usize]
     }
 
-    pub fn temperature(&self, pos: Vector2) -> f64 {
+    // interpolated values (readonly)
+    pub fn temp(&self, pos: Vector2) -> f64 {
         // TODO use cubic interpolation
-        todo!()
+        let cc = self.cell_count as usize;
+
+        let start = (pos.y - 0.5) as usize * cc;
+        // TODO proper boundary condition
+        let zero = vec![0f64; cc];
+        let row_above = self.temperature.get(start..(start + cc)).unwrap_or(&zero);
+        let row_below = self.temperature.get((start + cc)..(start + 2 * cc)).unwrap_or(&zero);
+
+        let value_above = LinearInterpolation::interpolate(row_above, pos.x - 0.5);
+        let value_below = LinearInterpolation::interpolate(row_below, pos.x - 0.5);
+
+        LinearInterpolation::interpolate(&[value_above, value_below], (pos.y - 0.5).fract())
     }
 
     pub fn vel(&self, pos: Vector2) -> Vector2 {
