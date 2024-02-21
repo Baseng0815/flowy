@@ -13,7 +13,7 @@ pub struct StaggeredMACGrid {
 }
 
 impl StaggeredMACGrid {
-    pub fn new(grid_size: f64, cell_count: u32) -> Self {
+    pub fn new(cell_count: u32) -> Self {
         Self {
             cell_count,
             velocities_x: vec![0.0; (cell_count * (cell_count + 1)) as usize],
@@ -61,16 +61,20 @@ impl StaggeredMACGrid {
         let value_above = LinearInterpolation::interpolate(row_above, pos.x - 0.5);
         let value_below = LinearInterpolation::interpolate(row_below, pos.x - 0.5);
 
-        LinearInterpolation::interpolate(&[value_above, value_below], (pos.y - 0.5).fract())
+        LinearInterpolation::interpolate(&[value_above, value_below], (pos.y - 0.5).fract().abs())
     }
 
     pub fn vel(&self, pos: Vector2) -> Vector2 {
-        // TODO make generic
-        let iy = (self.cell_count + 1) as usize * (pos.y as usize).clamp(0, (self.cell_count - 1) as usize);
-        let slice_x = &self.velocities_x[iy..iy + (self.cell_count + 1) as usize];
+        let cc1 = self.cell_count as usize + 1;
 
-        let ix = (self.cell_count + 1) as usize * (pos.x as usize).clamp(0, (self.cell_count - 1) as usize);
-        let slice_y = &self.velocities_y[ix..ix + (self.cell_count + 1) as usize];
+        // TODO make generic
+        // TODO proper boundary condition
+        let zero = vec![0f64; cc1];
+        let iy = cc1 * (pos.y as usize);
+        let slice_x = &self.velocities_x.get(iy..iy + cc1 as usize).unwrap_or(&zero);
+
+        let ix = cc1 as usize * (pos.x as usize);
+        let slice_y = &self.velocities_y.get(ix..ix + cc1 as usize).unwrap_or(&zero);
 
         let vx = CubicInterpolation::interpolate(slice_x, pos.x);
         let vy = CubicInterpolation::interpolate(slice_y, pos.y);

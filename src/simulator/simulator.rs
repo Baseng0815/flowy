@@ -23,25 +23,25 @@ impl Simulator {
         let mut grid_new = self.grid.clone();
 
         // advect velocities
-        // for row in 0..self.grid.cell_count {
-        //     for col in 0..=self.grid.cell_count {
-        //         // x velocities
-        //         let xp = vector2(col as f64, row as f64 + 0.5);
-        //         let xg = self.trace_back(dt, xp);
+        for row in 0..self.grid.cell_count {
+            for col in 0..=self.grid.cell_count {
+                // x velocities
+                let xp = vector2(col as f64, row as f64 + 0.5);
+                let xg = self.trace_back(dt, xp);
 
-        //         let clamped = xg.clamp(0.0, self.grid.cell_count as f64);
-        //         let v_new = self.grid.vel(clamped);
-        //         *grid_new.vel_x_grid_mut(col, row) = v_new.x;
+                let clamped = xg.clamp(0.0, self.grid.cell_count as f64);
+                let v_new = self.grid.vel(clamped);
+                *grid_new.vel_x_grid_mut(col, row) = v_new.x;
 
-        //         // y velocities
-        //         let xp = vector2(row as f64 + 0.5, col as f64);
-        //         let xg = self.trace_back(dt, xp);
+                // y velocities
+                let xp = vector2(row as f64 + 0.5, col as f64);
+                let xg = self.trace_back(dt, xp);
 
-        //         let clamped = xg.clamp(0.0, self.grid.cell_count as f64);
-        //         let v_new = self.grid.vel(clamped);
-        //         *grid_new.vel_y_grid_mut(row, col) = v_new.y;
-        //     }
-        // }
+                let clamped = xg.clamp(0.0, self.grid.cell_count as f64);
+                let v_new = self.grid.vel(clamped);
+                *grid_new.vel_y_grid_mut(row, col) = v_new.y;
+            }
+        }
 
         // advect temperature
         for y in 0..self.grid.cell_count {
@@ -49,8 +49,7 @@ impl Simulator {
                 let xp = vector2(x as f64 + 0.5, y as f64 + 0.5);
                 let xg = self.trace_back(dt, xp);
 
-                let clamped = xg.clamp(0.0, self.grid.cell_count as f64 + 0.5);
-                let temp_new = self.grid.temp(clamped);
+                let temp_new = self.grid.temp(xg);
                 *grid_new.temp_grid_mut(x, y) = temp_new;
             }
         }

@@ -47,6 +47,8 @@ pub struct FlowyApp {
 
 impl FlowyApp {
     pub fn new(simulator: Simulator) -> Self {
+        let initial_grid = simulator.grid.clone();
+
         Self {
             simulator,
             line_width: 0.5,
@@ -63,7 +65,7 @@ impl FlowyApp {
             dt: 0.2,
             simulation_running: false,
 
-            snapshots: Vec::new(),
+            snapshots: vec![Snapshot::new(0, initial_grid)],
             selected_snapshot: None
         }
     }
@@ -154,7 +156,6 @@ impl FlowyApp {
         for x in 0..cc {
             for y in 0..cc {
                 let temp = self.simulator.grid.temp(vector2(x as f64 + 0.5, y as f64 + 0.5));
-                eprintln!("temp = {:#?}", temp);
                 let temp_scaled = temp * self.temp_scaling_factor as f64;
 
                 let center = pos2(x as f32 / cc as f32 + half_grid, y as f32 / cc as f32 + half_grid);
@@ -163,6 +164,10 @@ impl FlowyApp {
                 painter.circle_filled(centert, 5.0, Hsva::new(0.0, temp_scaled as f32, 1.0, 1.0));
             }
         }
+    }
+
+    fn take_snapshot(&mut self) {
+        self.snapshots.push(Snapshot::new(self.simulator.current_time_step, self.simulator.grid.clone()));
     }
 }
 
@@ -204,7 +209,7 @@ impl eframe::App for FlowyApp {
             }
 
             if ui.button("Take snapshot").clicked() {
-                self.snapshots.push(Snapshot::new(self.simulator.current_time_step, self.simulator.grid.clone()));
+                self.take_snapshot();
             }
 
             let snapshot_selection_text = match self.selected_snapshot {

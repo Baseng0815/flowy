@@ -2,7 +2,7 @@ use eframe::egui;
 
 use simulator::grid::StaggeredMACGrid;
 
-use crate::{visualize::FlowyApp, simulator::simulator::Simulator};
+use crate::{visualize::FlowyApp, simulator::{simulator::Simulator, math::vector2}};
 
 mod simulator;
 mod visualize;
@@ -17,8 +17,8 @@ fn main() -> Result<(), eframe::Error> {
         "flowy",
         options,
         Box::new(|cc| {
-            let mut grid = StaggeredMACGrid::new(5.0, 20);
-            *grid.temp_grid_mut(4, 0) = 1.0;
+            let mut grid = StaggeredMACGrid::new(20);
+            *grid.temp_grid_mut(2, 5) = 10.0;
 
             let tcc = grid.velocities_x.len();
 

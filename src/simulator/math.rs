@@ -1,6 +1,6 @@
 use epaint::{Vec2, vec2};
 
-#[derive(Clone, Copy)]
+#[derive(Debug, Clone, Copy)]
 pub struct Vector2 {
     pub x: f64,
     pub y: f64

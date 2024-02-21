@@ -4,12 +4,17 @@ pub trait Interpolation {
 
 pub struct LinearInterpolation { }
 
+// points = [0, 1, 2, 3, 4, 5]
+// index = 3.7
+
 impl Interpolation for LinearInterpolation {
     fn interpolate(points: &[f64], index: f64) -> f64 {
         let c0 = index.floor() as usize;
         let c1 = (c0 + 1).min(points.len() - 1);
 
-        let s = index - c0 as f64;
+        let s = index.fract();
+
+        eprintln!("{} {} {}", c0, c1, s);
 
         (1.0 - s) * points[c0] + s * points[c1]
     }
