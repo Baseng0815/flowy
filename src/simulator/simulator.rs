@@ -20,34 +20,33 @@ impl Simulator {
     }
 
     pub fn advect(&mut self, dt: f64) {
+        let cc = self.grid.cell_count;
         let mut grid_new = self.grid.clone();
 
         // advect velocities
-        for row in 0..self.grid.cell_count {
-            for col in 0..=self.grid.cell_count {
+        for row in 0..cc {
+            for col in 0..=cc {
                 // x velocities
                 let xp = vector2(col as f64, row as f64 + 0.5);
-                let xg = self.trace_back(dt, xp);
+                let xg = self.trace_back(dt, xp).clamp(-1.0, (cc + 2) as f64);
 
-                let clamped = xg.clamp(0.0, self.grid.cell_count as f64);
-                let v_new = self.grid.vel(clamped);
+                let v_new = self.grid.vel(xg);
                 *grid_new.vel_x_grid_mut(col, row) = v_new.x;
 
                 // y velocities
                 let xp = vector2(row as f64 + 0.5, col as f64);
-                let xg = self.trace_back(dt, xp);
+                let xg = self.trace_back(dt, xp).clamp(-1.0, (cc + 2) as f64);
 
-                let clamped = xg.clamp(0.0, self.grid.cell_count as f64);
-                let v_new = self.grid.vel(clamped);
+                let v_new = self.grid.vel(xg);
                 *grid_new.vel_y_grid_mut(row, col) = v_new.y;
             }
         }
 
         // advect temperature
-        for y in 0..self.grid.cell_count {
-            for x in 0..self.grid.cell_count {
+        for y in 0..cc {
+            for x in 0..cc {
                 let xp = vector2(x as f64 + 0.5, y as f64 + 0.5);
-                let xg = self.trace_back(dt, xp);
+                let xg = self.trace_back(dt, xp).clamp(-1.0, (cc + 2) as f64);
 
                 let temp_new = self.grid.temp(xg);
                 *grid_new.temp_grid_mut(x, y) = temp_new;

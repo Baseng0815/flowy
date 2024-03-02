@@ -176,6 +176,7 @@ impl eframe::App for FlowyApp {
         egui::SidePanel::right("settings_panel").show(ctx, |ui| {
             ui.heading("Settings");
 
+            // main controls
             ui.label("Visualization parameters");
             ui.add(Slider::new(&mut self.line_width, 0.01..=5.0).text("Line width"));
             ui.add(Slider::new(&mut self.vel_scaling_factor, 0.01..=10.0).text("Velocity scaling factor"));
@@ -194,6 +195,7 @@ impl eframe::App for FlowyApp {
 
             ui.separator();
 
+            // stepping and running
             if ui.button("Step simulation").clicked() || self.simulation_running {
                 let now = Local::now().time();
                 let tick_dt = (1000.0 / self.ticks_per_second as f64) as i64;
@@ -217,6 +219,7 @@ impl eframe::App for FlowyApp {
                 None => "None".to_string()
             };
 
+            // snapshots
             egui::ComboBox::from_label("Select a snapshot to restore")
                 .selected_text(snapshot_selection_text)
                 .show_ui(ui, |ui| {
@@ -235,6 +238,11 @@ impl eframe::App for FlowyApp {
                     self.simulator.grid = self.snapshots[i].grid.clone();
                 }
             }
+
+            ui.separator();
+
+            // misc. information
+            ui.label(format!("Average temperature: {:?}", self.simulator.grid.temp_average()));
         });
 
         egui::CentralPanel::default().show(ctx, |ui| {
