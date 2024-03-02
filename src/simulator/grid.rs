@@ -59,9 +59,8 @@ impl StaggeredMACGrid {
         let row_above = self.temperature.get(start..(start + cc2)).unwrap_or(&zero);
         let row_below = self.temperature.get((start + cc2)..(start + 2 * cc2)).unwrap_or(&zero);
 
-        // TODO use cubic interpolation
-        let value_above = LinearInterpolation::interpolate(row_above, pos.x + 0.5);
-        let value_below = LinearInterpolation::interpolate(row_below, pos.x + 0.5);
+        let value_above = CubicInterpolation::interpolate(row_above, pos.x + 0.5);
+        let value_below = CubicInterpolation::interpolate(row_below, pos.x + 0.5);
 
         LinearInterpolation::interpolate(&[value_above, value_below], (pos.y + 0.5).fract().abs())
     }
@@ -82,9 +81,8 @@ impl StaggeredMACGrid {
         let ix = cc3 * (pos.x + 1.0) as usize;
         let slice_y = &self.velocities_y.get(ix..ix + cc3 as usize).unwrap_or(&zero);
 
-        // TODO use cubic interpolation
-        let vx = LinearInterpolation::interpolate(slice_x, pos.x + 1.0);
-        let vy = LinearInterpolation::interpolate(slice_y, pos.y + 1.0);
+        let vx = CubicInterpolation::interpolate(slice_x, pos.x + 1.0);
+        let vy = CubicInterpolation::interpolate(slice_y, pos.y + 1.0);
         vector2(vx, vy)
     }
 }
